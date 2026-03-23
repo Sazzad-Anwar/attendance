@@ -38,7 +38,9 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api')
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api')
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -49,20 +51,28 @@ function App() {
   )
   const [isEmailSent, setIsEmailSent] = useState(false)
 
-  // Ping API every 10 minutes to prevent background sleeping
-  useEffect(() => {
-    const pingInterval = setInterval(() => {
-      axios.get(`${API_BASE}/health`).catch(() => {})
-    }, 10 * 60 * 1000)
-    
-    // Initial ping on load
-    axios.get(`${API_BASE}/health`).catch(() => {})
-
-    return () => clearInterval(pingInterval)
-  }, [])
-
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth() + 1
+
+  // Ping API every 10 minutes to prevent background sleeping
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/attendance`, {
+          params: { year, month, type: timesheetType },
+        })
+        setAttendance(res.data)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    const pingInterval = setInterval(() => fetchData(), 3 * 60 * 1000)
+
+    // Initial ping on load
+    fetchData()
+
+    return () => clearInterval(pingInterval)
+  }, [month, timesheetType, year])
 
   useEffect(() => {
     const checkSubmission = async () => {
@@ -89,20 +99,6 @@ function App() {
   }
 
   const days = eachDayOfInterval({ start: startDate, end: endDate })
-
-  useEffect(() => {
-    const fetchAttendance = async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/attendance`, {
-          params: { year, month, type: timesheetType },
-        })
-        setAttendance(res.data)
-      } catch (err) {
-        console.error('Failed to fetch attendance', err)
-      }
-    }
-    fetchAttendance()
-  }, [year, month, timesheetType])
 
   const toggleStatus = async (date: Date) => {
     if (isSaturday(date) || isSunday(date)) return
@@ -395,9 +391,13 @@ function App() {
               })}
 
               {Array.from({
-                length: 42 - ((days.length > 0 ? days[0].getDay() : 0) + days.length)
+                length:
+                  42 - ((days.length > 0 ? days[0].getDay() : 0) + days.length),
               }).map((_, i) => (
-                <div key={`empty-end-${i}`} className="w-full aspect-square" />
+                <div
+                  key={`empty-end-${i}`}
+                  className="w-full aspect-square"
+                />
               ))}
             </div>
           </CardContent>
