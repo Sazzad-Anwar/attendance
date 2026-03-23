@@ -67,12 +67,9 @@ function App() {
         console.log(error)
       }
     }
-    const pingInterval = setInterval(() => fetchData(), 3 * 60 * 1000)
 
     // Initial ping on load
     fetchData()
-
-    return () => clearInterval(pingInterval)
   }, [month, timesheetType, year])
 
   useEffect(() => {
