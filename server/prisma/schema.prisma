@@ -1,0 +1,28 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Attendance {
+  id     Int    @id @default(autoincrement())
+  date   String @unique
+  status String
+}
+
+model Submission {
+  id     Int      @id @default(autoincrement())
+  year   Int
+  month  Int
+  type   String
+  sentAt DateTime @default(now())
+
+  @@unique([year, month, type])
+}

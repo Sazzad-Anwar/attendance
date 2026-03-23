@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: attendance-app
+    env: node
+    buildCommand: bun install && cd client && bun install && bun run build && cd ../server && bun install
+    startCommand: cd server && bun run src/index.ts
+    envVars:
+      - key: SMTP_FROM
+        sync: false
+      - key: SMTP_TO
+        sync: false
+      - key: USER_NAME
+        sync: false
