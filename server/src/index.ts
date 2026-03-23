@@ -121,6 +121,7 @@ const app = new Elysia()
       alwaysStatic: true, // Always serve static files if they match
     }),
   )
+  .get('/api/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))
   .get('/api/attendance', async ({ query }) => {
     const { year, month } = query
     if (!year || !month) return { error: 'Year and month required' }

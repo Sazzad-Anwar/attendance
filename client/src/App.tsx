@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api'
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api')
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -48,6 +48,18 @@ function App() {
     'project',
   )
   const [isEmailSent, setIsEmailSent] = useState(false)
+
+  // Ping API every 10 minutes to prevent background sleeping
+  useEffect(() => {
+    const pingInterval = setInterval(() => {
+      axios.get(`${API_BASE}/health`).catch(() => {})
+    }, 10 * 60 * 1000)
+    
+    // Initial ping on load
+    axios.get(`${API_BASE}/health`).catch(() => {})
+
+    return () => clearInterval(pingInterval)
+  }, [])
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth() + 1
