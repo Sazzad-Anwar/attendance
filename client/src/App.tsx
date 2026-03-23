@@ -146,7 +146,7 @@ function App() {
       console.error(err)
       toast.error('Failed to generate Excel')
     } finally {
-      setLoading(false)
+      setDownloading(false)
     }
   }
 
