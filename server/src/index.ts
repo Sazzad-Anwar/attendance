@@ -10,7 +10,6 @@ import { PrismaLibSql } from '@prisma/adapter-libsql'
 import path from 'path'
 
 // Define the path to the React build folder
-const buildPath = path.join(process.cwd(), '..', 'client', 'dist')
 
 const connectionString = 'file:./dev.db'
 const adapter = new PrismaLibSql({ url: connectionString })
@@ -19,13 +18,19 @@ const prisma = new PrismaClient({ adapter })
 const startDay = 15
 const endDay = 14
 
-async function processTimesheetSubmission(year: number, month: number, type: 'project' | 'payroll') {
+async function processTimesheetSubmission(
+  year: number,
+  month: number,
+  type: 'project' | 'payroll',
+) {
   // Check if we already sent an email for this configuration
   const existing = await prisma.submission.findUnique({
     where: { year_month_type: { year, month, type } },
   })
   if (existing) {
-    console.log(`[CRON] ${type} timesheet for ${year}-${month} was already sent. Skipping.`)
+    console.log(
+      `[CRON] ${type} timesheet for ${year}-${month} was already sent. Skipping.`,
+    )
     return
   }
 
@@ -80,7 +85,9 @@ ${process.env.USER_NAME}</p>
     create: { year, month, type },
   })
 
-  console.log(`[CRON] SUCCESSFULLY sent ${title} timesheet for ${year}-${month}.`)
+  console.log(
+    `[CRON] SUCCESSFULLY sent ${title} timesheet for ${year}-${month}.`,
+  )
 }
 
 const app = new Elysia()
@@ -98,10 +105,11 @@ const app = new Elysia()
         console.log('[CRON] Executing Payroll timesheet...')
         const date = new Date()
         const targetMonth = date.getMonth() === 0 ? 12 : date.getMonth()
-        const targetYear = date.getMonth() === 0 ? date.getFullYear() - 1 : date.getFullYear()
+        const targetYear =
+          date.getMonth() === 0 ? date.getFullYear() - 1 : date.getFullYear()
         await processTimesheetSubmission(targetYear, targetMonth, 'payroll')
-      }
-    })
+      },
+    }),
   )
   .use(
     cron({
@@ -110,18 +118,18 @@ const app = new Elysia()
       async run() {
         console.log('[CRON] Executing Project timesheet...')
         const date = new Date()
-        await processTimesheetSubmission(date.getFullYear(), date.getMonth() + 1, 'project')
-      }
-    })
-  )
-  .use(
-    staticPlugin({
-      assets: buildPath,
-      prefix: '/', // Serves the files from the root path
-      alwaysStatic: true, // Always serve static files if they match
+        await processTimesheetSubmission(
+          date.getFullYear(),
+          date.getMonth() + 1,
+          'project',
+        )
+      },
     }),
   )
-  .get('/api/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))
+  .get('/api/health', () => ({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  }))
   .get('/api/attendance', async ({ query }) => {
     const { year, month } = query
     if (!year || !month) return { error: 'Year and month required' }
@@ -228,7 +236,11 @@ const app = new Elysia()
     '/api/send-email',
     async ({ body }) => {
       const { year, month, type } = body
-      await processTimesheetSubmission(year, month, type as 'project' | 'payroll')
+      await processTimesheetSubmission(
+        year,
+        month,
+        type as 'project' | 'payroll',
+      )
       return { success: true }
     },
     {
@@ -240,15 +252,17 @@ const app = new Elysia()
     },
   )
   .get('*', async ({ set }) => {
-    const indexPath = Bun.pathToFileURL('../client/dist/index.html').pathname;
-    const file = Bun.file(indexPath);
+    const indexPath = Bun.pathToFileURL('../client/dist/index.html').pathname
+    const file = Bun.file(indexPath)
     if (!(await file.exists())) {
-      set.status = 404;
-      return 'Frontend is not built. In development, please use the Vite dev server (usually localhost:5173).';
+      set.status = 404
+      return 'Frontend is not built. In development, please use the Vite dev server (usually localhost:5173).'
     }
-    set.headers['content-type'] = 'text/html';
-    return await file.text();
+    set.headers['content-type'] = 'text/html'
+    return await file.text()
   })
   .listen(3001)
 
-console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`)
+console.log(
+  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
+)
