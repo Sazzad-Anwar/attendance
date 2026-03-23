@@ -46,6 +46,7 @@ function App() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [attendance, setAttendance] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const [timesheetType, setTimesheetType] = useState<'project' | 'payroll'>(
     'project',
   )
@@ -124,7 +125,7 @@ function App() {
   }
 
   const handleDownload = async () => {
-    setLoading(true)
+    setDownloading(true)
     try {
       const res = await axios.post(
         `${API_BASE}/generate`,
@@ -255,10 +256,19 @@ function App() {
                 <Button
                   variant="default"
                   onClick={handleDownload}
-                  disabled={loading}
+                  disabled={downloading}
                   className="gap-2 rounded"
                 >
-                  <Download className="w-4 h-4" /> Download
+                  {downloading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />{' '}
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" /> Download
+                    </>
+                  )}
                 </Button>
                 <Button
                   onClick={handleSendEmail}
